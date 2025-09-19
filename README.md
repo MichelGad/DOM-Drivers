@@ -577,7 +577,7 @@ DOI: 10.1016/j.watres.2024.123018
 
 ## 🤝 Contributing
 
-We welcome contributions to improve this pipeline. Please feel free to:
+Contributions are welcome to improve this pipeline. Please feel free to:
 
 1. Report bugs or issues
 2. Suggest new features

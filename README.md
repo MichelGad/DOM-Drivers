@@ -590,7 +590,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- **Michel Gad** - Lead Developer and Corresponding Author
+- **Michel Gad** - Corresponding Author
 - **Narjes Tayyebi Sabet Khomami** - Co-author
 - **Ronald Krieg** - Co-author
 - **Jana Schor** - Co-author

@@ -1,1 +1,1 @@
-../.git/annex/objects/jX/k1/MD5E-s20941--a23de5ffb5698b6545a798e546af8ff9.R/MD5E-s20941--a23de5ffb5698b6545a798e546af8ff9.R
+/annex/objects/MD5E-s20941--a23de5ffb5698b6545a798e546af8ff9.R

@@ -1,0 +1,4 @@
+[submodule "input"]
+	path = input
+	url = ./input
+	datalad-id = ac5e516c-fafd-45d9-a0d3-9e5b8ba4b050

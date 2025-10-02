@@ -1,9 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# DataLad Run Script for Unraveling Environmental Drivers of DOM Composition in Central European Aquatic Systems (DOM-Drivers)
+# DataLad Rerun Script for Unraveling Environmental Drivers of DOM Composition in Central European Aquatic Systems (DOM-Drivers)
 # Author: Michel Gad
 # Date: 2025-01-21
-# Description: Complete reproducible analysis pipeline using datalad rerun with Google Drive data
+# Description: Retrieve existing analysis results using datalad rerun (NO NEW ANALYSES)
+# WARNING: This script only retrieves existing results - it does NOT run new analyses or save results
 # Supporting Publication: Water Research 2024 - DOI: 10.1016/j.watres.2024.123018
 # Google Drive Data: https://drive.google.com/drive/folders/1g-l6JclTWdDfgvewtokYzux-U9GnUXDD?usp=sharing
 # =============================================================================
@@ -393,15 +394,17 @@ EOF
     print_success "Analysis completion summary created!"
 }
 
-# Function to save all results
-save_results() {
-    print_status "Saving all analysis results to DataLad..."
-    
-    datalad save \
-        -m "Complete DOM-Drivers analysis pipeline results with Google Drive data" \
-        output/ processed/ input/
-    
-    print_success "All results saved to DataLad dataset!"
+# Function to show rerun information
+show_rerun_info() {
+    print_status "Rerun Information:"
+    echo "===================="
+    echo "This script is designed for retrieving existing analysis results using datalad rerun."
+    echo "It does NOT run new analyses or save results to avoid overwriting existing data."
+    echo ""
+    echo "To retrieve all results, use: datalad rerun --since=HEAD~10"
+    echo "To retrieve specific results, use: datalad rerun <commit-hash>"
+    echo ""
+    print_success "Results retrieval completed!"
 }
 
 # Function to show analysis summary
@@ -441,7 +444,7 @@ show_summary() {
 
 # Main execution function
 main() {
-    print_status "Starting DOM-Drivers Analysis Pipeline with Google Drive Data + DataLad Rerun"
+    print_status "Starting DOM-Drivers Results Retrieval using DataLad Rerun (NO NEW ANALYSES)"
     print_status "=================================================================================="
     
     # Check prerequisites
@@ -473,8 +476,8 @@ main() {
     create_completion_summary
     echo ""
     
-    # Save all results
-    save_results
+    # Show rerun information
+    show_rerun_info
     echo ""
     
     # Show summary

@@ -298,7 +298,7 @@ datalad run --explicit --input "input/env_2025-01-21.csv" --output "processed/pa
 #### Setup and Run
 ```bash
 # Clone the DataLad dataset
-datalad clone <repository-url>
+datalad clone https://codeberg.org/MichelGad/DOM-Drivers.git
 cd DOM-Drivers
 
 # Get all required data from Google Drive

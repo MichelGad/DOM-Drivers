@@ -6,7 +6,8 @@
 # Description: Retrieve existing analysis results using datalad rerun (NO NEW ANALYSES)
 # WARNING: This script only retrieves existing results - it does NOT run new analyses or save results
 # Supporting Publication: Water Research 2024 - DOI: 10.1016/j.watres.2024.123018
-# Google Drive Data: https://drive.google.com/drive/folders/1g-l6JclTWdDfgvewtokYzux-U9GnUXDD?usp=sharing
+# Data Source: Dropbox (DOM-Drivers/input/)
+# Data Download Link: https://www.dropbox.com/scl/fo/pwq56e8sswcxiphm7f3rz/ADSmIjl-tBwCote0l-EjBxg?rlkey=7al8zh3f3f6v6trwlzo5ia5os&st=6tng7w4q&dl=0
 # =============================================================================
 
 set -e  # Exit on any error
@@ -127,10 +128,9 @@ setup_logs() {
     print_success "All output directories created!"
 }
 
-# Function to download input data from Google Drive
+# Function to download input data from cloud storage (Google Drive or Dropbox)
 download_input_data() {
     print_status "Checking for existing input data..."
-    print_status "Google Drive folder: https://drive.google.com/drive/folders/1g-l6JclTWdDfgvewtokYzux-U9GnUXDD?usp=sharing"
     
     # Create input directory if it doesn't exist
     mkdir -p input
@@ -141,27 +141,32 @@ download_input_data() {
         return 0
     fi
     
-    print_status "Input files not found or incomplete. Downloading from Google Drive..."
+    print_status "Input files not found or incomplete. Checking available cloud storage..."
     
-    # Check if rclone is configured
-    if ! rclone listremotes | grep -q "mygdrive"; then
-        print_error "rclone remote 'mygdrive' not found. Please configure rclone first."
+    # Check for Dropbox
+    if ! rclone listremotes | grep -q "dropbox"; then
+        print_error "Dropbox remote not found. Please configure rclone for Dropbox first."
         print_error "Run: rclone config"
         exit 1
     fi
     
-    # Download files from Google Drive and rename them
-    print_status "Downloading molecular formulas (304.6 MB)..."
-    rclone copy mygdrive:git-annex-rclone/MD5E-s319430610--f1a5758478cd90525d317bcf8446f7a3.csv input/temp_formulas.csv
+    print_status "Using Dropbox as data source..."
+    local cloud_source="Dropbox"
+    local remote_name="dropbox"
+    local data_path="DOM-Drivers/input"  # Existing organized project folder
     
-    print_status "Downloading environmental parameters (84 KB)..."
-    rclone copy mygdrive:git-annex-rclone/MD5E-s86392--c6fd7208939b9488303faefc673c776c.csv input/temp_env.csv
+    # Download files from Dropbox
+    print_status "Downloading molecular formulas (304.6 MB) from $cloud_source..."
+    rclone copy ${remote_name}:${data_path}/formulas.clean_2025-01-21.csv input/temp_formulas.csv
     
-    print_status "Downloading evaluation summary (9 KB)..."
-    rclone copy mygdrive:git-annex-rclone/MD5E-s8831--5f2a2cc18d2915b1208ee764f4a1da59.csv input/temp_eval.csv
+    print_status "Downloading environmental parameters (84 KB) from $cloud_source..."
+    rclone copy ${remote_name}:${data_path}/eval.summary.clean_2025-01-21.csv input/temp_env.csv
     
-    print_status "Downloading repository definitions (6 KB)..."
-    rclone copy mygdrive:git-annex-rclone/MD5E-s5868--b1ca17b55e079055c703e51c02ed39e2.csv input/temp_repo.csv
+    print_status "Downloading evaluation summary (9 KB) from $cloud_source..."
+    rclone copy ${remote_name}:${data_path}/env_2025-01-21.csv input/temp_eval.csv
+    
+    print_status "Downloading repository definitions (6 KB) from $cloud_source..."
+    rclone copy ${remote_name}:${data_path}/Repository_file_definition_2022_03_20.csv input/temp_repo.csv
     
     # Rename files to expected names
     print_status "Renaming files to expected names..."
@@ -377,8 +382,9 @@ Output Files Generated:
 
 Data Source Information:
 ------------------------
-- Input data downloaded from Google Drive
-- Files renamed from git-annex format to expected names
+- Input data downloaded from Dropbox (organized project folder)
+- Download Link: https://www.dropbox.com/scl/fo/pwq56e8sswcxiphm7f3rz/ADSmIjl-tBwCote0l-EjBxg?rlkey=7al8zh3f3f6v6trwlzo5ia5os&st=6tng7w4q&dl=0
+- Files use proper names instead of git-annex hashes
 - All analysis scripts executed successfully
 
 Reproducibility:
@@ -407,12 +413,39 @@ show_rerun_info() {
     print_success "Results retrieval completed!"
 }
 
+# Function to show data setup instructions for new users
+show_data_setup_instructions() {
+    print_status "Data Setup Instructions for New Users:"
+    echo "=============================================="
+    echo "To use this script, you need to set up Dropbox access:"
+    echo ""
+    echo "1. Install rclone: https://rclone.org/downloads/"
+    echo "2. Configure Dropbox remote:"
+    echo "   rclone config"
+    echo "   - Choose 'n' for new remote"
+    echo "   - Name it 'dropbox'"
+    echo "   - Select 'Dropbox' as storage type"
+    echo "   - Follow authentication steps"
+    echo ""
+    echo "3. Download the data:"
+    echo "   wget -O data.zip 'https://www.dropbox.com/scl/fo/pwq56e8sswcxiphm7f3rz/ADSmIjl-tBwCote0l-EjBxg?rlkey=7al8zh3f3f6v6trwlzo5ia5os&st=6tng7w4q&dl=1'"
+    echo "   unzip data.zip"
+    echo "   rclone copy input/ dropbox:DOM-Drivers/input/"
+    echo ""
+    echo "4. Run the analysis script:"
+    echo "   ./run_analysis_datalad.sh"
+    echo ""
+    print_success "Setup instructions provided!"
+}
+
 # Function to show analysis summary
 show_summary() {
     print_status "Analysis Summary:"
     echo "=================="
     echo "📊 Input Data Source:"
-    echo "  - Google Drive: https://drive.google.com/drive/folders/1g-l6JclTWdDfgvewtokYzux-U9GnUXDD?usp=sharing"
+    echo "  - Cloud Storage: Dropbox"
+    echo "  - Dropbox: DOM-Drivers/input/ (organized project folder)"
+    echo "  - Download Link: https://www.dropbox.com/scl/fo/pwq56e8sswcxiphm7f3rz/ADSmIjl-tBwCote0l-EjBxg?rlkey=7al8zh3f3f6v6trwlzo5ia5os&st=6tng7w4q&dl=0"
     echo "  - Weighted averages: input/env_2025-01-21.csv"
     echo "  - Molecular formulas: input/formulas.clean_2025-01-21.csv"
     echo "  - Environmental parameters: input/eval.summary.clean_2025-01-21.csv"
@@ -480,12 +513,16 @@ main() {
     show_rerun_info
     echo ""
     
+    # Show data setup instructions for new users
+    show_data_setup_instructions
+    echo ""
+    
     # Show summary
     show_summary
     
     print_success "DOM-Drivers analysis pipeline completed successfully!"
     print_status "All results are tracked in DataLad for full reproducibility."
-    print_status "Data source: Google Drive (https://drive.google.com/drive/folders/1g-l6JclTWdDfgvewtokYzux-U9GnUXDD?usp=sharing)"
+    print_status "Data source: Dropbox (DOM-Drivers/input/)"
 }
 
 # Run main function

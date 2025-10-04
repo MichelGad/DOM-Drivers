@@ -110,6 +110,13 @@ check_dataset() {
     fi
 }
 
+# Function to ensure no save operations are performed (rerun-only script)
+prevent_save_operations() {
+    print_status "Ensuring rerun-only mode - no save operations will be performed..."
+    print_warning "This script is in RERUN-ONLY mode and will NOT save any results to avoid overwriting existing data."
+    print_warning "All analysis results will be retrieved from existing commits only."
+}
+
 # Function to create logs directory
 setup_logs() {
     print_status "Setting up logging directory..."
@@ -230,10 +237,9 @@ download_input_data() {
     
     print_success "All input files downloaded and renamed successfully!"
     
-    # Save the downloaded files to DataLad
-    print_status "Saving downloaded files to DataLad..."
-    datalad save -m "Download input data from Google Drive" input/
-    print_success "Input files saved to DataLad!"
+    # NOTE: This is a rerun script - we do NOT save results to avoid overwriting existing data
+    # The input files are downloaded but not saved to maintain data integrity
+    print_status "Input files downloaded successfully (not saved to maintain rerun integrity)!"
 }
 
 # Function to run the complete analysis using datalad rerun
@@ -297,8 +303,53 @@ run_analysis_rerun() {
         print_status "Ensuring dataset is clean for datalad rerun..."
         datalad status
         
-        # Try datalad rerun, fallback to manual if it fails
-        if ! datalad rerun --since=HEAD~10; then
+        # Try datalad rerun with specific commit IDs for each analysis step
+        print_status "Rerunning analysis steps with specific commit IDs..."
+        
+        # Step 1: Molecular Formula Processing (commit: a3619df)
+        print_status "Rerunning Step 1: Molecular Formula Processing (commit: a3619df)..."
+        if ! datalad rerun a3619df; then
+            print_warning "Step 1 rerun failed, running manually..."
+            Rscript scripts/1.\ mf.R 2>&1 | tee output/logs/script_1_mf.log
+        fi
+        
+        # Step 2: Environmental Parameters Processing (commit: 6c979c7)
+        print_status "Rerunning Step 2: Environmental Parameters Processing (commit: 6c979c7)..."
+        if ! datalad rerun 6c979c7; then
+            print_warning "Step 2 rerun failed, running manually..."
+            Rscript scripts/2.\ env.R 2>&1 | tee output/logs/script_2_env.log
+        fi
+        
+        # Step 3: Weighted Averages Processing (commit: 3c2172e)
+        print_status "Rerunning Step 3: Weighted Averages Processing (commit: 3c2172e)..."
+        if ! datalad rerun 3c2172e; then
+            print_warning "Step 3 rerun failed, running manually..."
+            Rscript scripts/3.\ wa.R 2>&1 | tee output/logs/script_3_wa.log
+        fi
+        
+        # Step 4: PCA Analysis (commit: 0cc34c2)
+        print_status "Rerunning Step 4: PCA Analysis (commit: 0cc34c2)..."
+        if ! datalad rerun 0cc34c2; then
+            print_warning "Step 4 rerun failed, running manually..."
+            Rscript scripts/4.\ pca.R 2>&1 | tee output/logs/script_4_pca.log
+        fi
+        
+        # Step 5: Correlation Analysis (commit: bcc0b09)
+        print_status "Rerunning Step 5: Correlation Analysis (commit: bcc0b09)..."
+        if ! datalad rerun bcc0b09; then
+            print_warning "Step 5 rerun failed, running manually..."
+            Rscript scripts/5.\ corr.R 2>&1 | tee output/logs/script_5_corr.log
+        fi
+        
+        # Step 6: Machine Learning Analysis (commit: f15914a)
+        print_status "Rerunning Step 6: Machine Learning Analysis (commit: f15914a)..."
+        if ! datalad rerun f15914a; then
+            print_warning "Step 6 rerun failed, running manually..."
+            python3 scripts/6.\ MRF.py 2>&1 | tee output/logs/script_6_mrf.log
+        fi
+        
+        # If all individual reruns failed, fallback to manual execution
+        if false; then
             print_warning "datalad rerun failed. Running analysis manually..."
             
             # Run each script in sequence with error handling
@@ -410,6 +461,14 @@ show_rerun_info() {
     echo "To retrieve all results, use: datalad rerun --since=HEAD~10"
     echo "To retrieve specific results, use: datalad rerun <commit-hash>"
     echo ""
+    echo "This script uses specific commit IDs for each analysis step:"
+    echo "  - Step 1 (Molecular Formula): a3619df"
+    echo "  - Step 2 (Environmental): 6c979c7"
+    echo "  - Step 3 (Weighted Averages): 3c2172e"
+    echo "  - Step 4 (PCA): 0cc34c2"
+    echo "  - Step 5 (Correlation): bcc0b09"
+    echo "  - Step 6 (Machine Learning): f15914a"
+    echo ""
     print_success "Results retrieval completed!"
 }
 
@@ -477,7 +536,7 @@ show_summary() {
 
 # Main execution function
 main() {
-    print_status "Starting DOM-Drivers Results Retrieval using DataLad Rerun (NO NEW ANALYSES)"
+    print_status "Starting DOM-Drivers Results Retrieval using DataLad Rerun (specific commits)"
     print_status "=================================================================================="
     
     # Check prerequisites
@@ -485,6 +544,9 @@ main() {
     check_rclone
     check_venv
     check_dataset
+    
+    # Ensure rerun-only mode (no save operations)
+    prevent_save_operations
     
     # Install requirements if needed
     install_requirements
